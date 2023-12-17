@@ -9,6 +9,7 @@ import time
 import random
 import os
 import atexit
+import webbrowser
 
 dpg.create_context()
 dpg.create_viewport(title="Rainy Music",large_icon="icon.ico",small_icon="icon.ico")
@@ -161,6 +162,42 @@ def removeall():
 	json.dump(songs,open("data/songs.json", "w"),indent=4)
 	dpg.delete_item("list", children_only=True)
 	load_database()
+
+# Theme selector function
+def switch_theme(sender, app_data, user_data):
+    if app_data == "Fallout":
+        dpg.bind_theme("fallout_theme")
+    else:
+        dpg.bind_theme("base")
+
+# Create a single settings window with the specified size, position, and content
+with dpg.window(label="Settings", tag="settings_window", width=300, height=200, pos=(100, 100), no_move=False):
+    dpg.add_text("Select Theme:")
+    dpg.add_combo(["Default", "Fallout"], default_value="Default", callback=switch_theme)
+
+# fallout_theme
+with dpg.theme(tag="fallout_theme"):
+    with dpg.theme_component():
+        # Button colors
+        dpg.add_theme_color(dpg.mvThemeCol_Button, (59, 63, 68, 255))          # Muted green
+        dpg.add_theme_color(dpg.mvThemeCol_ButtonActive, (50, 55, 50, 255))    # Darker green when clicked
+        dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (78, 83, 63, 255))   # Lighter green when hovered
+        
+        # Text and other element colors
+        dpg.add_theme_color(dpg.mvThemeCol_Text, (216, 169, 91, 255))          # Amber for text
+        dpg.add_theme_color(dpg.mvThemeCol_ChildBg, (30, 30, 30, 255))         # Dark gray for child background
+        dpg.add_theme_color(dpg.mvThemeCol_Border, (216, 169, 91, 255))        # Amber for borders
+        dpg.add_theme_color(dpg.mvThemeCol_FrameBgHovered, (172, 174, 197, 255)) # Light gray for hovered frames
+
+        # Styles (similar to the base theme)
+        dpg.add_theme_style(dpg.mvStyleVar_FrameRounding, 3)
+        dpg.add_theme_style(dpg.mvStyleVar_ChildRounding, 4)
+        dpg.add_theme_style(dpg.mvStyleVar_FramePadding, 4, 4)
+        dpg.add_theme_style(dpg.mvStyleVar_WindowRounding, 4, 4)
+        dpg.add_theme_style(dpg.mvStyleVar_WindowTitleAlign, 0.50, 0.50)
+        dpg.add_theme_style(dpg.mvStyleVar_WindowBorderSize, 0)
+        dpg.add_theme_style(dpg.mvStyleVar_WindowPadding, 10, 14)
+
 
 with dpg.theme(tag="base"):
 	with dpg.theme_component():
