@@ -10,6 +10,51 @@ import random
 import os
 import atexit
 import webbrowser
+import cryptography
+from cryptography.fernet import Fernet 
+""" Week One Contribution to an open source project """
+
+def generate_key():
+    """
+    Generates a key and save it into a file
+    """
+    key = Fernet.generate_key()
+    with open("secret.key", "wb") as key_file:
+        key_file.write(key)
+
+def load_key():
+    """
+    Load the previously generated key
+    """
+    with open("secret.key", "rb") as key_file:
+        return key_file.read()
+
+def encrypt_message(message):
+    """
+    Encrypts a message
+    """
+    key = load_key()
+    encoded_message = message.encode()
+    f = Fernet(key)
+    encrypted_message = f.encrypt(encoded_message)
+    return encrypted_message
+     
+def decrypt_message(encrypted_message):
+    """
+    Decrypts an encrypted message
+    """
+    key = load_key()
+    f = Fernet(key)
+    decrypted_message = f.decrypt(encrypted_message)
+    return decrypted_message.decode()
+
+    songs = data["songs"]
+    for filename in songs:
+        dpg.add_button(label=f"{ntpath.basename(filename)}", callback=play, width=-1,
+                       height=25, user_data=filename.replace("\\", "/"), parent="list")
+        
+        dpg.add_spacer(height=2, parent="list")
+
 
 dpg.create_context()
 dpg.create_viewport(title="Rainy Music",large_icon="icon.ico",small_icon="icon.ico")
@@ -27,19 +72,32 @@ def update_volume(sender, app_data):
 	pygame.mixer.music.set_volume(app_data / 100.0)
 
 def load_database():
-	songs = json.load(open("data/songs.json", "r+"))["songs"]
-	for filename in songs:
-		dpg.add_button(label=f"{ntpath.basename(filename)}", callback=play, width=-1,
-					   height=25, user_data=filename.replace("\\", "/"), parent="list")
-		
-		dpg.add_spacer(height=2, parent="list")
+    # Load the encrypted data from the database
+    with open("data/songs.json", "rb") as db_file:
+        encrypted_data = db_file.read()
 
+    # Decrypt the data
+    decrypted_data_str = decrypt_message(encrypted_data)
+
+    # Convert the decrypted data from a string back to a dictionary
+    data = json.loads(decrypted_data_str)
 
 def update_database(filename: str):
-	data = json.load(open("data/songs.json", "r+"))
-	if filename not in data["songs"]:
-		data["songs"] += [filename]
-	json.dump(data, open("data/songs.json", "r+"), indent=4)
+    with open("data/songs.json", "r+") as file:
+        data = json.load(file)
+        if filename not in data["songs"]:
+            data["songs"] += [filename]
+        
+        # Convert the data to a string
+        data_str = json.dumps(data)
+
+        # Encrypt the data
+        encrypted_data = encrypt_message(data_str)
+
+        # Write the encrypted data back to the file
+        file.seek(0)
+        file.write(encrypted_data)
+        file.truncate()
 
 def update_slider():
 	global state
