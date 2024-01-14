@@ -10,17 +10,20 @@ import random
 import os
 import atexit
 import webbrowser
-import cryptography
 from cryptography.fernet import Fernet 
 """ Week One Contribution to an open source project """
 
 def generate_key():
     """
-    Generates a key and save it into a file
+    Generates a key and save it into a file if it doesn't already exist.
     """
-    key = Fernet.generate_key()
-    with open("secret.key", "wb") as key_file:
-        key_file.write(key)
+    key_file_path = "secret.key"
+    if not os.path.exists(key_file_path):
+        key = Fernet.generate_key()
+        with open(key_file_path, "wb") as key_file:
+            key_file.write(key)
+    else:
+        print("Key already exists. No new key generated.")
 
 def load_key():
     """
@@ -81,6 +84,16 @@ def load_database():
 
     # Convert the decrypted data from a string back to a dictionary
     data = json.loads(decrypted_data_str)
+
+    # Clear existing items in the list (if any)
+    dpg.delete_item("list", children_only=True)
+
+    # Populate GUI with songs from decrypted data
+    for filename in data["songs"]:
+        dpg.add_button(label=f"{ntpath.basename(filename)}", callback=play, width=-1,
+                       height=25, user_data=filename.replace("\\", "/"), parent="list")
+        dpg.add_spacer(height=2, parent="list")
+
 
 def update_database(filename: str):
     with open("data/songs.json", "r+") as file:
